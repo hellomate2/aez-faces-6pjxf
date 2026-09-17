@@ -1,0 +1,931 @@
+<title>AEZ Faces</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&display=swap">
+<style>
+:root{
+  --ground:#F2F1ED; --surface:#FFFFFF; --surface-2:#E8E6E0; --surface-3:#DEDBD3;
+  --line:#D9D6CE; --line-soft:#E6E3DC;
+  --ink:#1B1C1F; --ink-2:#4B4D55; --ink-3:#7C7F88;
+  --accent:#2F3A8F; --accent-ink:#FFFFFF; --accent-soft:#E4E7F7; --accent-line:#B9C0EA;
+  --good:#1F7A4D; --good-soft:#DDF3E6;
+  --warn:#9A6B12; --warn-soft:#F6EBD3;
+  --bad:#A63A2C; --bad-soft:#F8E3DF;
+  --shadow:0 1px 2px rgba(27,28,31,.06),0 10px 30px rgba(27,28,31,.08);
+  --shadow-sm:0 1px 2px rgba(27,28,31,.07);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#121317; --surface:#1B1D23; --surface-2:#242730; --surface-3:#2E323D;
+    --line:#33363F; --line-soft:#2A2D35;
+    --ink:#ECEDF0; --ink-2:#B6B9C2; --ink-3:#7F838E;
+    --accent:#8C97F0; --accent-ink:#0F1330; --accent-soft:#1E2246; --accent-line:#3A4183;
+    --good:#5FCB8E; --good-soft:#13301F;
+    --warn:#E0B45F; --warn-soft:#352A12;
+    --bad:#F09182; --bad-soft:#3A1A14;
+    --shadow:0 1px 2px rgba(0,0,0,.5),0 12px 36px rgba(0,0,0,.45);
+    --shadow-sm:0 1px 2px rgba(0,0,0,.5);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#121317; --surface:#1B1D23; --surface-2:#242730; --surface-3:#2E323D;
+  --line:#33363F; --line-soft:#2A2D35;
+  --ink:#ECEDF0; --ink-2:#B6B9C2; --ink-3:#7F838E;
+  --accent:#8C97F0; --accent-ink:#0F1330; --accent-soft:#1E2246; --accent-line:#3A4183;
+  --good:#5FCB8E; --good-soft:#13301F;
+  --warn:#E0B45F; --warn-soft:#352A12;
+  --bad:#F09182; --bad-soft:#3A1A14;
+  --shadow:0 1px 2px rgba(0,0,0,.5),0 12px 36px rgba(0,0,0,.45);
+  --shadow-sm:0 1px 2px rgba(0,0,0,.5);
+}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);
+  font-family:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:15px;line-height:1.45;-webkit-font-smoothing:antialiased;min-height:100vh}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:4px}
+.num{font-variant-numeric:tabular-nums}
+.serif{font-family:"Instrument Serif",Georgia,"Times New Roman",serif;font-weight:400;letter-spacing:0}
+
+.wrap{max-width:780px;margin:0 auto;padding:20px 16px 72px;display:flex;flex-direction:column;gap:16px}
+
+/* ---- app bar ---- */
+.bar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{margin:0;font-size:21px;font-weight:700;letter-spacing:-.02em}
+h1 span{color:var(--ink-3);font-weight:500;font-size:13px;margin-left:8px;letter-spacing:0}
+.barbtns{display:flex;gap:6px}
+
+/* ---- mode rail ---- */
+.seg{display:flex;gap:4px;background:var(--surface-2);padding:4px;border-radius:11px;overflow-x:auto;scrollbar-width:none}
+.seg::-webkit-scrollbar{display:none}
+.seg button{border:0;background:transparent;padding:7px 13px;border-radius:8px;color:var(--ink-2);
+  font-weight:600;font-size:14px;white-space:nowrap}
+.seg button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:var(--shadow-sm)}
+
+/* ---- mastery strip ---- */
+.mastery{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:13px 15px;
+  display:flex;flex-direction:column;gap:9px;box-shadow:var(--shadow-sm)}
+.mastery .top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.mastery .top b{font-size:14px;font-weight:600}
+.mastery .top em{font-style:normal;color:var(--ink-3);font-size:13px}
+.seg-bar{display:flex;height:8px;border-radius:99px;overflow:hidden;background:var(--surface-2)}
+.seg-bar i{display:block;transition:width .3s}
+.seg-bar i.k{background:var(--good)}
+.seg-bar i.l{background:var(--warn)}
+.seg-bar i.s{background:var(--bad)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--ink-3)}
+.legend span{display:flex;align-items:center;gap:5px}
+.dot{width:8px;height:8px;border-radius:50%;flex:none}
+.dot.k{background:var(--good)} .dot.l{background:var(--warn)}
+.dot.s{background:var(--bad)} .dot.n{background:var(--surface-3)}
+
+/* ---- chips ---- */
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:5px 12px;
+  font-size:13px;font-weight:500;color:var(--ink-2)}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--ground)}
+.chip.exec[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+
+/* ---- buttons ---- */
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:11px;padding:13px 14px;
+  font-weight:600;font-size:15px;display:flex;align-items:center;justify-content:center;gap:8px;
+  box-shadow:var(--shadow-sm)}
+.btn:hover{border-color:var(--ink-3)}
+.btn kbd{font:600 11px/1 ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--surface-2);
+  border:1px solid var(--line);border-radius:5px;padding:3px 5px;color:var(--ink-3)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary kbd{background:rgba(255,255,255,.16);border-color:transparent;color:inherit}
+.btn.miss{color:var(--bad);border-color:var(--bad)}
+.btn.got{color:var(--good);border-color:var(--good)}
+.btn:disabled{opacity:.45;cursor:default}
+.ghost{border:1px solid var(--line);background:transparent;border-radius:9px;padding:7px 12px;
+  font-size:13px;font-weight:500;color:var(--ink-2)}
+.ghost:hover{background:var(--surface)}
+.ghost[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--ground)}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row.center{justify-content:center}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* ---- progress meta ---- */
+.bar-thin{height:5px;background:var(--surface-2);border-radius:99px;overflow:hidden}
+.bar-thin i{display:block;height:100%;background:var(--accent);width:0;transition:width .25s}
+.meta{display:flex;justify-content:space-between;font-size:13px;color:var(--ink-3);margin-top:7px}
+.meta b{color:var(--ink-2);font-weight:600}
+
+/* ---- flashcard ---- */
+.stage{perspective:1400px;margin-top:4px}
+.card{position:relative;width:100%;aspect-ratio:4/5;max-height:540px;margin:0 auto;border-radius:18px;
+  transform-style:preserve-3d;transition:transform .45s cubic-bezier(.2,.7,.2,1);cursor:pointer}
+.card.flipped{transform:rotateY(180deg)}
+.face{position:absolute;inset:0;border-radius:18px;background:var(--surface);border:1px solid var(--line);
+  box-shadow:var(--shadow);backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden;
+  display:flex;flex-direction:column}
+.face.back{transform:rotateY(180deg);align-items:center;justify-content:center;text-align:center;padding:28px;gap:5px}
+.face.front img{width:100%;height:100%;object-fit:cover;display:block}
+.hint{position:absolute;left:0;right:0;bottom:0;padding:12px 16px;font-size:11.5px;letter-spacing:.09em;
+  text-transform:uppercase;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.6));font-weight:600}
+.name{font-size:clamp(27px,6vw,38px);font-weight:700;letter-spacing:-.02em;line-height:1.05;text-wrap:balance}
+.role{margin-top:3px;color:var(--accent);font-weight:600;font-size:14.5px}
+.sub{color:var(--ink-3);font-size:13.5px;max-width:34ch;text-wrap:balance}
+.back .thumb{width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--line-soft);margin-bottom:6px}
+
+/* ---- question views ---- */
+.qcard{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;
+  box-shadow:var(--shadow);display:flex;flex-direction:column;gap:15px}
+.qhead{display:flex;justify-content:space-between;align-items:baseline;gap:10px;
+  font-size:12px;letter-spacing:.07em;text-transform:uppercase;font-weight:600;color:var(--ink-3)}
+.qphoto{width:100%;max-width:270px;aspect-ratio:1;object-fit:cover;border-radius:14px;
+  align-self:center;border:1px solid var(--line);display:block}
+.qprompt{font-size:clamp(23px,5vw,31px);font-weight:700;letter-spacing:-.02em;text-align:center;
+  text-wrap:balance;line-height:1.1}
+.qnote{text-align:center;color:var(--ink-3);font-size:13.5px;margin-top:-8px}
+
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.opt{border:1px solid var(--line);background:var(--surface);border-radius:11px;padding:13px 14px;
+  text-align:left;font-weight:600;font-size:14.5px;display:flex;align-items:center;gap:10px;min-height:52px}
+.opt:hover:not(:disabled){border-color:var(--ink-3);background:var(--surface-2)}
+.opt i{font-style:normal;font-size:11px;font-weight:700;color:var(--ink-3);background:var(--surface-2);
+  border-radius:5px;padding:3px 6px;flex:none;font-variant-numeric:tabular-nums}
+.opt.right{border-color:var(--good);background:var(--good-soft);color:var(--good)}
+.opt.right i{background:var(--good);color:var(--surface)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft);color:var(--bad)}
+.opt.wrong i{background:var(--bad);color:var(--surface)}
+.opts.photos{grid-template-columns:repeat(2,1fr)}
+.opts.photos .opt{padding:0;display:block;position:relative;overflow:hidden;min-height:0}
+.opts.photos .opt img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.opts.photos .opt i{position:absolute;top:7px;left:7px}
+
+.answer{display:flex;gap:8px}
+.answer input{flex:1;min-width:0;border:1px solid var(--line);background:var(--ground);border-radius:11px;
+  padding:13px 14px;font-size:16px;font-weight:600}
+.answer input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+
+.verdict{border-radius:11px;padding:12px 14px;font-size:14px;font-weight:600;display:flex;
+  align-items:center;gap:9px;flex-wrap:wrap}
+.verdict.right{background:var(--good-soft);color:var(--good)}
+.verdict.close{background:var(--warn-soft);color:var(--warn)}
+.verdict.wrong{background:var(--bad-soft);color:var(--bad)}
+.verdict .fix{font-weight:700}
+.verdict button{margin-left:auto;border:1px solid currentColor;background:transparent;border-radius:8px;
+  padding:5px 10px;font-size:12.5px;font-weight:600;color:inherit}
+
+/* ---- match ---- */
+.mtop{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.clock{font-size:40px;line-height:1;letter-spacing:-.01em}
+.mgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.mtile{border:1px solid var(--line);background:var(--surface);border-radius:12px;overflow:hidden;
+  aspect-ratio:1;display:flex;align-items:center;justify-content:center;text-align:center;padding:8px;
+  font-weight:600;font-size:13.5px;line-height:1.2;box-shadow:var(--shadow-sm);
+  transition:opacity .22s,transform .22s,border-color .12s;text-wrap:balance}
+.mtile img{width:100%;height:100%;object-fit:cover;display:block;border-radius:5px}
+.mtile.photo{padding:3px}
+.mtile.sel{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.mtile.bad{border-color:var(--bad);animation:shake .3s}
+.mtile.done{opacity:0;transform:scale(.9);pointer-events:none}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+
+/* ---- test ---- */
+.qlist{display:flex;flex-direction:column;gap:13px}
+.qitem{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;
+  display:flex;flex-direction:column;gap:12px;box-shadow:var(--shadow-sm)}
+.qitem.graded.ok{border-color:var(--good)}
+.qitem.graded.no{border-color:var(--bad)}
+.qitem .qn{font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;font-weight:700;color:var(--ink-3)}
+.qitem img.q{width:150px;aspect-ratio:1;object-fit:cover;border-radius:11px;border:1px solid var(--line)}
+.qitem .ask{font-size:17px;font-weight:600;text-wrap:balance}
+.qitem .opts{grid-template-columns:1fr 1fr}
+.qitem .opt{min-height:46px;padding:10px 12px;font-size:14px}
+.qitem .opt[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.qitem .opt[aria-pressed="true"] i{background:var(--accent);color:var(--accent-ink)}
+.corr{font-size:13.5px;color:var(--ink-2)}
+.corr b{color:var(--good)}
+.corr.no b{color:var(--bad)}
+
+/* ---- browse ---- */
+.search{display:flex;gap:8px}
+.search input{flex:1;min-width:0;border:1px solid var(--line);background:var(--surface);border-radius:11px;
+  padding:11px 14px;font-size:15px}
+.search input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(138px,1fr));gap:11px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;
+  box-shadow:var(--shadow-sm);text-align:left;padding:0;display:flex;flex-direction:column;position:relative}
+.tile img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.tile .t{padding:8px 10px 10px}
+.tile .t b{display:block;font-size:13.5px;line-height:1.2;font-weight:600}
+.tile .t span{display:block;font-size:11.5px;color:var(--ink-3);margin-top:2px;line-height:1.25}
+.tile .flag{position:absolute;top:7px;right:7px;width:9px;height:9px;border-radius:50%;
+  box-shadow:0 0 0 2px var(--surface)}
+.tile .flag.k{background:var(--good)} .tile .flag.l{background:var(--warn)} .tile .flag.s{background:var(--bad)}
+
+/* ---- results ---- */
+.done{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:32px 22px;
+  text-align:center;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:6px;align-items:center}
+.done .big{font-size:60px;line-height:1;letter-spacing:-.02em}
+.done .sub2{color:var(--ink-3);font-size:14px;text-wrap:balance;max-width:40ch}
+.misslist{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:6px}
+.misslist span{background:var(--bad-soft);color:var(--bad);border-radius:99px;padding:4px 10px;
+  font-size:12.5px;font-weight:600}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:14px;padding:30px 20px;
+  text-align:center;color:var(--ink-3);font-size:14px;text-wrap:balance}
+
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:var(--ground);
+  padding:9px 15px;border-radius:9px;font-size:13px;font-weight:500;opacity:0;transition:opacity .2s;
+  pointer-events:none;z-index:9;max-width:88vw;text-align:center}
+.toast.show{opacity:1}
+
+@media (max-width:540px){
+  .mgrid{grid-template-columns:repeat(3,1fr)}
+  .opts{grid-template-columns:1fr}
+  .opts.photos{grid-template-columns:1fr 1fr}
+  .qitem .opts{grid-template-columns:1fr}
+  .clock{font-size:34px}
+  .done .big{font-size:50px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+</style>
+
+<div class="wrap">
+  <div class="bar">
+    <h1>AEZ Faces <span id="count"></span></h1>
+    <div class="barbtns">
+      <button class="ghost" id="bReset">Reset progress</button>
+    </div>
+  </div>
+
+  <div class="seg" role="tablist" id="modes">
+    <button role="tab" data-mode="cards" aria-selected="true">Flashcards</button>
+    <button role="tab" data-mode="learn" aria-selected="false">Learn</button>
+    <button role="tab" data-mode="match" aria-selected="false">Match</button>
+    <button role="tab" data-mode="test" aria-selected="false">Test</button>
+    <button role="tab" data-mode="browse" aria-selected="false">Roster</button>
+  </div>
+
+  <div class="mastery">
+    <div class="top"><b id="mTitle">Mastery</b><em id="mSub"></em></div>
+    <div class="seg-bar"><i class="k" id="mK"></i><i class="l" id="mL"></i><i class="s" id="mS"></i></div>
+    <div class="legend">
+      <span><i class="dot k"></i>Mastered <b class="num" id="nK">0</b></span>
+      <span><i class="dot l"></i>Learning <b class="num" id="nL">0</b></span>
+      <span><i class="dot s"></i>Shaky <b class="num" id="nS">0</b></span>
+      <span><i class="dot n"></i>Untouched <b class="num" id="nN">0</b></span>
+    </div>
+  </div>
+
+  <div class="chips" id="chips"></div>
+
+  <!-- ============ FLASHCARDS ============ -->
+  <section id="v-cards">
+    <div class="bar-thin"><i id="cProg"></i></div>
+    <div class="meta"><span><b class="num" id="cPos">0</b> of <b class="num" id="cTotal">0</b></span>
+      <span>got <b class="num" id="cGot">0</b> · missed <b class="num" id="cMiss">0</b></span></div>
+    <div class="stage" id="cStage">
+      <div class="card" id="card" tabindex="0" role="button" aria-label="Flashcard — activate to reveal the name">
+        <div class="face front"><img id="cPhoto" alt="Brother headshot"><div class="hint">tap or space to reveal</div></div>
+        <div class="face back">
+          <img class="thumb" id="cThumb" alt="">
+          <div class="name" id="cName"></div>
+          <div class="role" id="cRole"></div>
+          <div class="sub" id="cSub"></div>
+        </div>
+      </div>
+    </div>
+    <div id="cControls">
+      <div class="pair" style="margin-top:12px">
+        <button class="btn miss" id="cBad">Missed <kbd>←</kbd></button>
+        <button class="btn got" id="cOk">Got it <kbd>→</kbd></button>
+      </div>
+      <div class="row center" style="margin-top:10px">
+        <button class="ghost" id="cShuffle">Shuffle</button>
+        <button class="ghost" id="cMissed">Review misses only</button>
+        <button class="ghost" id="cFlipDir" aria-pressed="false">Start with name</button>
+      </div>
+    </div>
+    <div class="done" id="cDone" hidden>
+      <div class="big serif num" id="cScore"></div>
+      <div class="sub2" id="cScoreSub"></div>
+      <div class="misslist" id="cMissList"></div>
+      <div class="row center" style="margin-top:14px">
+        <button class="btn primary" id="cAgain">Go again</button>
+        <button class="btn miss" id="cAgainMiss">Drill the misses</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ LEARN ============ -->
+  <section id="v-learn" hidden>
+    <div class="bar-thin"><i id="lProg"></i></div>
+    <div class="meta"><span>Round <b class="num" id="lRound">1</b> · <b class="num" id="lPos">0</b> of <b class="num" id="lTotal">0</b></span>
+      <span id="lStreakWrap">streak <b class="num" id="lStreak">0</b></span></div>
+    <div class="qcard" id="lCard" style="margin-top:10px">
+      <div class="qhead"><span id="lKind">Pick the name</span><span id="lLevel"></span></div>
+      <img class="qphoto" id="lPhoto" alt="Brother headshot">
+      <div class="qprompt" id="lPrompt" hidden></div>
+      <div class="opts" id="lOpts"></div>
+      <div class="answer" id="lAnswer" hidden>
+        <input id="lInput" type="text" autocomplete="off" autocapitalize="words" spellcheck="false" placeholder="Type his full name">
+        <button class="btn primary" id="lSubmit">Check</button>
+      </div>
+      <div class="verdict" id="lVerdict" hidden></div>
+      <button class="btn primary" id="lNext" hidden>Next <kbd>⏎</kbd></button>
+    </div>
+    <div class="done" id="lDone" hidden>
+      <div class="big serif num" id="lScore"></div>
+      <div class="sub2" id="lScoreSub"></div>
+      <div class="misslist" id="lMissList"></div>
+      <div class="row center" style="margin-top:14px">
+        <button class="btn primary" id="lAgain">Next round</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ MATCH ============ -->
+  <section id="v-match" hidden>
+    <div class="mtop">
+      <div>
+        <div class="clock serif num" id="mClock">0.0</div>
+        <div style="font-size:13px;color:var(--ink-3)" id="mBest"></div>
+      </div>
+      <div class="row">
+        <button class="ghost" id="mSize" aria-pressed="false">6 pairs</button>
+        <button class="btn" id="mRestart">New board</button>
+      </div>
+    </div>
+    <div class="mgrid" id="mGrid" style="margin-top:14px"></div>
+    <div class="done" id="mDone" hidden>
+      <div class="big serif num" id="mScore"></div>
+      <div class="sub2" id="mScoreSub"></div>
+      <div class="row center" style="margin-top:14px">
+        <button class="btn primary" id="mAgain">Play again</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TEST ============ -->
+  <section id="v-test" hidden>
+    <div id="tSetup">
+      <div class="qcard">
+        <div class="qhead"><span>Set up your test</span></div>
+        <div>
+          <div style="font-size:13px;color:var(--ink-3);margin-bottom:7px">Questions</div>
+          <div class="row" id="tLens"></div>
+        </div>
+        <div>
+          <div style="font-size:13px;color:var(--ink-3);margin-bottom:7px">Question types</div>
+          <div class="row" id="tTypes"></div>
+        </div>
+        <button class="btn primary" id="tStart">Start test</button>
+      </div>
+    </div>
+    <div id="tRun" hidden>
+      <div class="meta" style="margin:0 0 10px"><span><b class="num" id="tAnswered">0</b> of <b class="num" id="tTotal">0</b> answered</span>
+        <span id="tGradedNote"></span></div>
+      <div class="qlist" id="tList"></div>
+      <button class="btn primary" id="tSubmit" style="margin-top:14px">Submit test</button>
+      <div class="done" id="tDone" hidden style="margin-top:14px">
+        <div class="big serif num" id="tScore"></div>
+        <div class="sub2" id="tScoreSub"></div>
+        <div class="row center" style="margin-top:14px">
+          <button class="btn primary" id="tAgain">New test</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ ROSTER ============ -->
+  <section id="v-browse" hidden>
+    <div class="search">
+      <input id="bSearch" type="search" autocomplete="off" placeholder="Search name, role, major, class">
+      <button class="ghost" id="bCopy">Copy list</button>
+    </div>
+    <div class="grid" id="grid" style="margin-top:13px"></div>
+    <div class="empty" id="bEmpty" hidden>No brothers match that search.</div>
+  </section>
+</div>
+<div class="toast" id="toast"></div>
+
+<script id="data" type="application/json">__DATA__</script>
+<script>
+"use strict";
+const ALL = JSON.parse(document.getElementById('data').textContent);
+const $ = id => document.getElementById(id);
+const KEY = 'aez-faces-v2';
+
+/* AEZ pledge classes run in Greek order, not alphabetical */
+const GREEK = ['Alpha Beta','Alpha Gamma','Alpha Delta','Alpha Epsilon','Alpha Zeta','Alpha Eta'];
+const byGreek = (a,b) => (GREEK.indexOf(a)+1||99) - (GREEK.indexOf(b)+1||99);
+
+/* ---------- state ---------- */
+/* m[name]: -1 shaky, 0 untouched, 1-2 learning, 3 mastered */
+let S = {m:{}, cls:'All', best:{}, pairs:6, tTypes:{mc:1, photo:1, tf:1, write:0}, tLen:10};
+try{ const raw = localStorage.getItem(KEY); if(raw) S = Object.assign(S, JSON.parse(raw)); }catch(e){}
+const save = () => { try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} };
+const lvl = p => S.m[p.n] || 0;
+const setLvl = (p,v) => { S.m[p.n] = Math.max(-1, Math.min(3, v)); save(); };
+
+/* ---------- helpers ---------- */
+const shuffle = a => { for(let k=a.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));[a[k],a[j]]=[a[j],a[k]];} return a; };
+const sample = (arr,n) => shuffle(arr.slice()).slice(0,n);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const desc = p => [p.r, p.c, p.m].filter(Boolean).join(' · ');
+let toastT;
+function toast(t){ const e=$('toast'); e.textContent=t; e.classList.add('show');
+  clearTimeout(toastT); toastT=setTimeout(()=>e.classList.remove('show'),1600); }
+
+const norm = s => String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+  .replace(/[^a-z ]/g,' ').replace(/\s+/g,' ').trim();
+function lev(a,b){
+  const m=a.length, n=b.length; if(!m) return n; if(!n) return m;
+  let prev=Array.from({length:n+1},(_,j)=>j), cur=new Array(n+1);
+  for(let i=1;i<=m;i++){ cur[0]=i;
+    for(let j=1;j<=n;j++){ cur[j]=Math.min(prev[j]+1, cur[j-1]+1, prev[j-1]+(a[i-1]===b[j-1]?0:1)); }
+    [prev,cur]=[cur,prev];
+  }
+  return prev[n];
+}
+/* 'right' | 'close' (first/last name only, or a typo) | 'wrong' */
+function judge(input, p){
+  const a = norm(input), t = norm(p.n);
+  if(!a) return 'wrong';
+  if(a === t) return 'right';
+  const parts = t.split(' ');
+  if(parts.includes(a)) return 'close';
+  if(lev(a,t) <= Math.max(1, Math.floor(t.length/7))) return 'close';
+  return 'wrong';
+}
+
+/* ---------- pool + filters ---------- */
+function pool(){
+  if(S.cls === 'Exec') return ALL.filter(p => p.r);
+  if(S.cls === 'All') return ALL;
+  return ALL.filter(p => p.c === S.cls);
+}
+const chipDefs = () => ['All','Exec', ...[...new Set(ALL.map(p=>p.c))].filter(Boolean).sort(byGreek)];
+function renderChips(){
+  const box = $('chips'); box.innerHTML='';
+  chipDefs().forEach(c => {
+    const b = document.createElement('button');
+    b.className = 'chip' + (c==='Exec' ? ' exec' : '');
+    b.textContent = c==='All' ? 'All 45' : c==='Exec' ? 'Exec board' : c;
+    b.setAttribute('aria-pressed', String(c === S.cls));
+    b.onclick = () => { S.cls = c; save(); renderChips(); renderMastery(); restartMode(); };
+    box.appendChild(b);
+  });
+}
+
+/* ---------- mastery strip ---------- */
+function renderMastery(){
+  const ps = pool();
+  let k=0,l=0,sh=0,n=0;
+  ps.forEach(p => { const v = lvl(p); if(v>=3) k++; else if(v<0) sh++; else if(v>0) l++; else n++; });
+  const tot = ps.length || 1;
+  $('mK').style.width = (k/tot*100)+'%';
+  $('mL').style.width = (l/tot*100)+'%';
+  $('mS').style.width = (sh/tot*100)+'%';
+  $('nK').textContent=k; $('nL').textContent=l; $('nS').textContent=sh; $('nN').textContent=n;
+  $('mTitle').textContent = S.cls==='All' ? 'Whole chapter' : S.cls==='Exec' ? 'Exec board' : S.cls;
+  $('mSub').textContent = k===ps.length ? 'All mastered' : k + ' of ' + ps.length + ' mastered';
+  $('count').textContent = ALL.length + ' brothers · 6 classes';
+}
+
+/* ================= FLASHCARDS ================= */
+let cDeck=[], cI=0, cGot=0, cMiss=0, cOnlyMissed=false, cMissed=[], cNameFirst=false;
+function cStart(){
+  let src = pool();
+  if(cOnlyMissed){
+    const m = src.filter(p => lvl(p) < 0);
+    if(!m.length){ toast('Nothing missed here yet'); cOnlyMissed=false; } else src = m;
+  }
+  cDeck = shuffle(src.slice()); cI=0; cGot=0; cMiss=0; cMissed=[];
+  $('cDone').hidden = true; $('cStage').hidden = false; $('cControls').hidden = false;
+  cShow();
+}
+function cShow(){
+  if(cI >= cDeck.length){ cFinish(); return; }
+  const p = cDeck[cI];
+  $('card').classList.toggle('flipped', cNameFirst);
+  $('cPhoto').src = p.i; $('cThumb').src = p.i;
+  $('cName').textContent = p.n;
+  $('cRole').textContent = p.r || ''; $('cRole').hidden = !p.r;
+  $('cSub').textContent = [p.c, p.m].filter(Boolean).join(' · ');
+  $('cPos').textContent = cI+1; $('cTotal').textContent = cDeck.length;
+  $('cGot').textContent = cGot; $('cMiss').textContent = cMiss;
+  $('cProg').style.width = (cI/cDeck.length*100)+'%';
+}
+function cMark(ok){
+  if(cI >= cDeck.length) return;
+  const p = cDeck[cI];
+  if(ok){ cGot++; setLvl(p, Math.max(1, lvl(p)+1)); }
+  else { cMiss++; cMissed.push(p.n); setLvl(p, -1); }
+  cI++; cShow(); renderMastery();
+}
+function cFinish(){
+  $('cProg').style.width='100%'; $('cStage').hidden = true; $('cControls').hidden = true;
+  $('cDone').hidden = false;
+  $('cScore').textContent = cGot + ' / ' + cDeck.length;
+  $('cScoreSub').textContent = cMiss ? cMiss + (cMiss===1?' name':' names') + ' to come back to' : 'Clean run — every face called.';
+  $('cMissList').innerHTML = cMissed.map(n => '<span>'+esc(n)+'</span>').join('');
+  $('cAgainMiss').hidden = !cMiss;
+}
+$('card').onclick = () => $('card').classList.toggle('flipped');
+$('card').onkeydown = e => { if(e.key==='Enter'){ $('card').classList.toggle('flipped'); } };
+$('cOk').onclick = () => cMark(true);
+$('cBad').onclick = () => cMark(false);
+$('cShuffle').onclick = () => { cOnlyMissed=false; cStart(); };
+$('cMissed').onclick = () => { cOnlyMissed=true; cStart(); };
+$('cFlipDir').onclick = () => { cNameFirst = !cNameFirst;
+  $('cFlipDir').setAttribute('aria-pressed', String(cNameFirst));
+  $('cFlipDir').textContent = cNameFirst ? 'Start with photo' : 'Start with name';
+  cShow(); };
+$('cAgain').onclick = () => { cOnlyMissed=false; cStart(); };
+$('cAgainMiss').onclick = () => { cOnlyMissed=true; cStart(); };
+
+/* ================= LEARN ================= */
+let lQueue=[], lI=0, lRight=0, lWrongNames=[], lRound=1, lStreak=0, lLocked=false, lCur=null;
+const ROUND = 7;
+function lPick(){
+  /* weakest first: shaky, then untouched, then partially learned; mastered only if nothing else */
+  const ps = pool().slice();
+  const rank = p => { const v = lvl(p); return v < 0 ? 0 : v === 0 ? 1 : v >= 3 ? 3 : 2; };
+  ps.sort((a,b) => rank(a)-rank(b) || Math.random()-0.5);
+  return ps.slice(0, Math.min(ROUND, ps.length));
+}
+function lStart(){
+  lQueue = shuffle(lPick()); lI=0; lRight=0; lWrongNames=[];
+  $('lDone').hidden = true; $('lCard').hidden = false;
+  lAsk();
+}
+function lAsk(){
+  if(lI >= lQueue.length){ lFinish(); return; }
+  lLocked = false; lCur = lQueue[lI];
+  const p = lCur, v = lvl(p);
+  const kind = v < 1 ? 'name' : v < 2 ? 'photo' : 'write';
+  lCur._kind = kind;
+  $('lRound').textContent = lRound;
+  $('lPos').textContent = lI+1; $('lTotal').textContent = lQueue.length;
+  $('lStreak').textContent = lStreak;
+  $('lProg').style.width = (lI/lQueue.length*100)+'%';
+  $('lLevel').textContent = v>=3 ? 'Mastered' : v<0 ? 'Shaky' : 'Level ' + Math.max(0,v) + ' of 3';
+  $('lVerdict').hidden = true; $('lNext').hidden = true;
+  $('lOpts').innerHTML = ''; $('lOpts').hidden = true;
+  $('lAnswer').hidden = true; $('lInput').value = '';
+  $('lPhoto').hidden = true; $('lPrompt').hidden = true;
+
+  if(kind === 'name'){
+    $('lKind').textContent = 'Who is this?';
+    $('lPhoto').src = p.i; $('lPhoto').hidden = false;
+    lOptions(p, ALL.filter(x => x.n !== p.n), x => esc(x.n), false);
+  } else if(kind === 'photo'){
+    $('lKind').textContent = 'Pick his photo';
+    $('lPrompt').textContent = p.n; $('lPrompt').hidden = false;
+    lOptions(p, ALL.filter(x => x.n !== p.n), x => '<img src="'+x.i+'" alt="">', true);
+  } else {
+    $('lKind').textContent = 'Type his name';
+    $('lPhoto').src = p.i; $('lPhoto').hidden = false;
+    $('lAnswer').hidden = false;
+    setTimeout(() => $('lInput').focus(), 30);
+  }
+}
+function lOptions(p, others, render, photos){
+  const opts = shuffle([p, ...sample(others, 3)]);
+  const box = $('lOpts');
+  box.className = 'opts' + (photos ? ' photos' : '');
+  box.hidden = false;
+  box.innerHTML = '';
+  opts.forEach((o, idx) => {
+    const b = document.createElement('button');
+    b.className = 'opt'; b.type = 'button';
+    b.innerHTML = '<i>' + (idx+1) + '</i>' + render(o);
+    if(photos) b.setAttribute('aria-label', 'Option ' + (idx+1));
+    b.onclick = () => lChoose(b, o, p, box);
+    box.appendChild(b);
+  });
+}
+function lChoose(btn, chosen, p, box){
+  if(lLocked) return; lLocked = true;
+  const ok = chosen.n === p.n;
+  [...box.children].forEach(el => { el.disabled = true; });
+  btn.classList.add(ok ? 'right' : 'wrong');
+  if(!ok){
+    const idx = [...box.children].findIndex(el => el.textContent.includes(p.n) || el.querySelector('img') && el.querySelector('img').src === p.i);
+    if(idx >= 0) box.children[idx].classList.add('right');
+  }
+  lGrade(ok ? 'right' : 'wrong', p);
+}
+function lGrade(res, p){
+  const v = $('lVerdict');
+  v.className = 'verdict ' + res; v.hidden = false;
+  if(res === 'right'){
+    lRight++; lStreak++; setLvl(p, Math.max(1, lvl(p)+1));
+    v.innerHTML = '<span>Correct — ' + esc(p.n) + (p.r ? ', ' + esc(p.r) : '') + '</span>';
+  } else if(res === 'close'){
+    lRight++; lStreak++; setLvl(p, Math.max(1, lvl(p)+1));
+    v.innerHTML = '<span>Close enough — it’s <span class="fix">' + esc(p.n) + '</span></span>';
+  } else {
+    lStreak = 0; lWrongNames.push(p.n); setLvl(p, -1);
+    v.innerHTML = '<span>It’s <span class="fix">' + esc(p.n) + '</span>' + (p.r ? ' — ' + esc(p.r) : '') + '</span>' +
+      '<button type="button" id="lOverride">I had it right</button>';
+    const ov = $('lOverride');
+    if(ov) ov.onclick = () => {
+      lWrongNames.pop(); lRight++; setLvl(p, Math.max(1, (S.m[p.n]||0)+2));
+      v.className = 'verdict right'; v.innerHTML = '<span>Counted as correct — ' + esc(p.n) + '</span>';
+      renderMastery();
+    };
+  }
+  $('lStreak').textContent = lStreak;
+  $('lNext').hidden = false; $('lNext').focus();
+  renderMastery();
+}
+function lSubmitWrite(){
+  if(lLocked) return;
+  const val = $('lInput').value;
+  if(!norm(val)){ toast('Type a name first'); return; }
+  lLocked = true;
+  lGrade(judge(val, lCur), lCur);
+}
+function lFinish(){
+  $('lProg').style.width = '100%';
+  $('lCard').hidden = true; $('lDone').hidden = false;
+  $('lScore').textContent = lRight + ' / ' + lQueue.length;
+  const mastered = pool().filter(p => lvl(p) >= 3).length;
+  $('lScoreSub').textContent = mastered + ' of ' + pool().length + ' mastered in this set. Rounds keep pulling the names you are weakest on.';
+  $('lMissList').innerHTML = lWrongNames.map(n => '<span>'+esc(n)+'</span>').join('');
+}
+$('lSubmit').onclick = lSubmitWrite;
+$('lInput').onkeydown = e => { if(e.key === 'Enter'){ e.preventDefault(); lSubmitWrite(); } };
+$('lNext').onclick = () => { lI++; lAsk(); };
+$('lAgain').onclick = () => { lRound++; lStart(); };
+
+/* ================= MATCH ================= */
+let mTiles=[], mSel=null, mLeft=0, mT0=0, mTimer=null, mRunning=false, mPenalty=0;
+function mStart(){
+  clearInterval(mTimer); mRunning = false; mPenalty = 0;
+  $('mDone').hidden = true; $('mGrid').hidden = false;
+  const n = Math.min(S.pairs, pool().length);
+  if(n < 2){ $('mGrid').innerHTML = '<div class="empty" style="grid-column:1/-1">Pick a bigger group to play Match.</div>'; return; }
+  const people = sample(pool(), n);
+  mTiles = shuffle([
+    ...people.map(p => ({p, type:'photo'})),
+    ...people.map(p => ({p, type:'name'}))
+  ]);
+  mLeft = n; mSel = null;
+  const g = $('mGrid'); g.innerHTML = '';
+  mTiles.forEach((t, idx) => {
+    const b = document.createElement('button');
+    b.className = 'mtile' + (t.type === 'photo' ? ' photo' : '');
+    b.type = 'button';
+    b.innerHTML = t.type === 'photo' ? '<img src="'+t.p.i+'" alt="Headshot">' : esc(t.p.n);
+    b.setAttribute('aria-label', t.type === 'photo' ? 'Headshot tile' : t.p.n);
+    b.onclick = () => mTap(b, t);
+    t.el = b; g.appendChild(b);
+  });
+  $('mClock').textContent = '0.0';
+  $('mBest').textContent = S.best[mKey()] ? 'Best ' + S.best[mKey()].toFixed(1) + 's · ' + mLabel() : 'No best time yet · ' + mLabel();
+}
+const mKey = () => S.cls + ':' + S.pairs;
+const mLabel = () => (S.cls === 'All' ? 'all 45' : S.cls === 'Exec' ? 'exec board' : S.cls) + ', ' + S.pairs + ' pairs';
+function mTick(){ $('mClock').textContent = ((performance.now()-mT0)/1000 + mPenalty).toFixed(1); }
+function mTap(el, t){
+  if(el.classList.contains('done')) return;
+  if(!mRunning){ mRunning = true; mT0 = performance.now(); mTimer = setInterval(mTick, 87); }
+  if(!mSel){ mSel = {el, t}; el.classList.add('sel'); return; }
+  if(mSel.el === el){ el.classList.remove('sel'); mSel = null; return; }
+  const a = mSel; a.el.classList.remove('sel');
+  if(a.t.p.n === t.p.n && a.t.type !== t.type){
+    a.el.classList.add('done'); el.classList.add('done');
+    a.el.disabled = true; el.disabled = true;
+    mSel = null; mLeft--;
+    if(mLeft === 0) mWin();
+  } else {
+    mPenalty += 1;
+    [a.el, el].forEach(x => { x.classList.add('bad'); setTimeout(()=>x.classList.remove('bad'), 320); });
+    mSel = null;
+  }
+}
+function mWin(){
+  clearInterval(mTimer); mRunning = false;
+  const secs = (performance.now()-mT0)/1000 + mPenalty;
+  $('mClock').textContent = secs.toFixed(1);
+  const key = mKey(), prev = S.best[key];
+  const pb = !prev || secs < prev;
+  if(pb){ S.best[key] = secs; save(); }
+  $('mGrid').hidden = true; $('mDone').hidden = false;
+  $('mScore').textContent = secs.toFixed(1) + 's';
+  $('mScoreSub').textContent = (pb ? 'New best for ' + mLabel() + '.' : 'Best is ' + prev.toFixed(1) + 's for ' + mLabel() + '.')
+    + (mPenalty ? ' Includes ' + mPenalty + 's in misses.' : ' No misses.');
+  $('mBest').textContent = 'Best ' + S.best[key].toFixed(1) + 's · ' + mLabel();
+}
+$('mRestart').onclick = mStart;
+$('mAgain').onclick = mStart;
+$('mSize').onclick = () => {
+  const steps = [6, 8, 12];
+  S.pairs = steps[(steps.indexOf(S.pairs)+1) % steps.length]; save();
+  $('mSize').textContent = S.pairs + ' pairs';
+  mStart();
+};
+
+/* ================= TEST ================= */
+const T_TYPES = [
+  {k:'mc',    label:'Name the face'},
+  {k:'photo', label:'Find the photo'},
+  {k:'tf',    label:'Yes or no'},
+  {k:'write', label:'Write it out'}
+];
+let tQs = [], tGraded = false;
+function tRenderSetup(){
+  const lens = $('tLens'); lens.innerHTML = '';
+  [10, 20, 'All'].forEach(n => {
+    const b = document.createElement('button');
+    b.className = 'ghost'; b.textContent = n === 'All' ? 'All' : n;
+    b.setAttribute('aria-pressed', String(S.tLen === n));
+    b.onclick = () => { S.tLen = n; save(); tRenderSetup(); };
+    lens.appendChild(b);
+  });
+  const types = $('tTypes'); types.innerHTML = '';
+  T_TYPES.forEach(t => {
+    const b = document.createElement('button');
+    b.className = 'ghost'; b.textContent = t.label;
+    b.setAttribute('aria-pressed', String(!!S.tTypes[t.k]));
+    b.onclick = () => {
+      const on = Object.keys(S.tTypes).filter(k => S.tTypes[k]);
+      if(S.tTypes[t.k] && on.length === 1){ toast('Keep at least one question type'); return; }
+      S.tTypes[t.k] = S.tTypes[t.k] ? 0 : 1; save(); tRenderSetup();
+    };
+    types.appendChild(b);
+  });
+}
+function tBuild(){
+  const ps = pool();
+  const want = S.tLen === 'All' ? ps.length : Math.min(S.tLen, ps.length);
+  const kinds = T_TYPES.map(t => t.k).filter(k => S.tTypes[k]);
+  const picked = sample(ps, want);
+  tQs = picked.map((p, idx) => {
+    const kind = kinds[idx % kinds.length];
+    const others = ALL.filter(x => x.n !== p.n);
+    const q = {p, kind, answer:null};
+    if(kind === 'mc' || kind === 'photo') q.opts = shuffle([p, ...sample(others, 3)]);
+    if(kind === 'tf'){ q.claim = Math.random() < 0.5 ? p : sample(others,1)[0]; q.yes = q.claim.n === p.n; }
+    return q;
+  });
+  shuffle(tQs);
+}
+function tRender(){
+  const list = $('tList'); list.innerHTML = '';
+  tQs.forEach((q, i) => {
+    const d = document.createElement('div');
+    d.className = 'qitem'; d.id = 'q'+i;
+    let inner = '<div class="qn">Question ' + (i+1) + ' · ' + T_TYPES.find(t=>t.k===q.kind).label + '</div>';
+    if(q.kind === 'mc'){
+      inner += '<img class="q" src="'+q.p.i+'" alt="Headshot"><div class="ask">Who is this?</div><div class="opts"></div>';
+    } else if(q.kind === 'photo'){
+      inner += '<div class="ask">Which one is ' + esc(q.p.n) + '?</div><div class="opts photos"></div>';
+    } else if(q.kind === 'tf'){
+      inner += '<img class="q" src="'+q.p.i+'" alt="Headshot"><div class="ask">Is this ' + esc(q.claim.n) + '?</div><div class="opts"></div>';
+    } else {
+      inner += '<img class="q" src="'+q.p.i+'" alt="Headshot"><div class="ask">Write his full name.</div>' +
+        '<div class="answer"><input type="text" autocomplete="off" autocapitalize="words" spellcheck="false" placeholder="Full name"></div>';
+    }
+    d.innerHTML = inner;
+    const box = d.querySelector('.opts');
+    if(q.kind === 'mc'){
+      q.opts.forEach((o,k) => box.appendChild(tOpt(o.n, k, () => { q.answer = o.n; tMark(d, box, k); })));
+    } else if(q.kind === 'photo'){
+      q.opts.forEach((o,k) => box.appendChild(tOpt('<img src="'+o.i+'" alt="Option '+(k+1)+'">', k, () => { q.answer = o.n; tMark(d, box, k); }, true)));
+    } else if(q.kind === 'tf'){
+      ['Yes','No'].forEach((lab,k) => box.appendChild(tOpt(lab, k, () => { q.answer = lab; tMark(d, box, k); })));
+    } else {
+      const inp = d.querySelector('input');
+      inp.oninput = () => { q.answer = inp.value; tCount(); };
+    }
+    list.appendChild(d);
+  });
+  $('tTotal').textContent = tQs.length;
+  tCount();
+}
+function tOpt(content, k, fn, photo){
+  const b = document.createElement('button');
+  b.className = 'opt'; b.type = 'button';
+  /* photo options arrive as markup; text options are escaped */
+  b.innerHTML = '<i>' + (k+1) + '</i>' + (photo ? content : esc(content));
+  if(photo) b.setAttribute('aria-label', 'Option ' + (k+1));
+  b.setAttribute('aria-pressed','false');
+  b.onclick = fn;
+  return b;
+}
+function tMark(item, box, k){
+  if(tGraded) return;
+  [...box.children].forEach((el,idx) => el.setAttribute('aria-pressed', String(idx===k)));
+  tCount();
+}
+function tCount(){
+  const n = tQs.filter(q => q.answer !== null && String(q.answer).trim() !== '').length;
+  $('tAnswered').textContent = n;
+}
+function tSubmit(){
+  if(tGraded) return;
+  const blank = tQs.filter(q => q.answer === null || String(q.answer).trim() === '').length;
+  if(blank && !confirm(blank + ' question' + (blank===1?'':'s') + ' still blank. Submit anyway?')) return;
+  tGraded = true;
+  let right = 0;
+  tQs.forEach((q,i) => {
+    const d = $('q'+i);
+    let ok = false, shown;
+    if(q.kind === 'tf'){ ok = (q.answer === 'Yes') === q.yes; shown = q.yes ? 'Yes' : 'No'; }
+    else if(q.kind === 'write'){ const v = judge(q.answer || '', q.p); ok = v !== 'wrong'; shown = q.p.n; }
+    else { ok = q.answer === q.p.n; shown = q.p.n; }
+    if(ok){ right++; setLvl(q.p, Math.max(1, lvl(q.p)+1)); } else setLvl(q.p, -1);
+    d.classList.add('graded', ok ? 'ok' : 'no');
+    d.querySelectorAll('.opt').forEach(el => el.disabled = true);
+    const inp = d.querySelector('input'); if(inp) inp.disabled = true;
+    const line = document.createElement('div');
+    line.className = 'corr' + (ok ? '' : ' no');
+    line.innerHTML = ok ? 'Correct — <b>' + esc(shown) + '</b>'
+      : 'Answer: <b>' + esc(shown) + '</b>' + (q.p.r ? ' · ' + esc(q.p.r) : '') + ' · ' + esc(q.p.c);
+    d.appendChild(line);
+  });
+  const pct = Math.round(right / tQs.length * 100);
+  $('tScore').textContent = pct + '%';
+  $('tScoreSub').textContent = right + ' of ' + tQs.length + ' correct. Misses are marked shaky and will come back first in Learn.';
+  $('tDone').hidden = false;
+  $('tSubmit').disabled = true;
+  $('tGradedNote').textContent = 'Graded';
+  renderMastery();
+  $('tDone').scrollIntoView({behavior:'smooth', block:'center'});
+}
+$('tStart').onclick = () => { tGraded = false; $('tSubmit').disabled = false; $('tGradedNote').textContent='';
+  $('tDone').hidden = true; tBuild(); tRender(); $('tSetup').hidden = true; $('tRun').hidden = false; };
+$('tSubmit').onclick = tSubmit;
+$('tAgain').onclick = () => { $('tRun').hidden = true; $('tSetup').hidden = false; tRenderSetup(); };
+
+/* ================= ROSTER ================= */
+function renderGrid(){
+  const q = norm($('bSearch').value);
+  const list = pool().filter(p => !q || norm(desc(p) + ' ' + p.n).includes(q));
+  const g = $('grid'); g.innerHTML = '';
+  $('bEmpty').hidden = list.length > 0;
+  list.forEach(p => {
+    const v = lvl(p);
+    const flag = v >= 3 ? 'k' : v < 0 ? 's' : v > 0 ? 'l' : '';
+    const t = document.createElement('div');
+    t.className = 'tile';
+    t.innerHTML = '<img src="'+p.i+'" alt="'+esc(p.n)+'">' +
+      (flag ? '<span class="flag '+flag+'" title="'+(flag==='k'?'Mastered':flag==='s'?'Shaky':'Learning')+'"></span>' : '') +
+      '<div class="t"><b>'+esc(p.n)+'</b><span>'+esc([p.r, p.c].filter(Boolean).join(' · '))+'</span>' +
+      '<span>'+esc(p.m||'')+'</span></div>';
+    g.appendChild(t);
+  });
+}
+$('bSearch').oninput = renderGrid;
+$('bCopy').onclick = async () => {
+  const rows = pool().map(p => p.n + '\t' + desc(p)).join('\n');
+  try{ await navigator.clipboard.writeText(rows); toast('Copied ' + pool().length + ' rows'); }
+  catch(e){ toast('Clipboard blocked — select the list by hand'); }
+};
+
+/* ================= MODES ================= */
+let mode = 'cards';
+const VIEWS = {cards:'v-cards', learn:'v-learn', match:'v-match', test:'v-test', browse:'v-browse'};
+function restartMode(){
+  if(mode === 'cards') cStart();
+  else if(mode === 'learn') lStart();
+  else if(mode === 'match') mStart();
+  else if(mode === 'test'){ $('tRun').hidden = true; $('tSetup').hidden = false; tRenderSetup(); }
+  else renderGrid();
+}
+function setMode(m){
+  mode = m;
+  Object.entries(VIEWS).forEach(([k,id]) => { $(id).hidden = k !== m; });
+  document.querySelectorAll('#modes button').forEach(b =>
+    b.setAttribute('aria-selected', String(b.dataset.mode === m)));
+  clearInterval(mTimer);
+  restartMode();
+}
+document.querySelectorAll('#modes button').forEach(b => b.onclick = () => setMode(b.dataset.mode));
+
+$('bReset').onclick = () => {
+  if(!confirm('Clear all mastery progress and best times?')) return;
+  S.m = {}; S.best = {}; save();
+  renderMastery(); restartMode(); toast('Progress cleared');
+};
+
+/* ---------- keyboard ---------- */
+document.addEventListener('keydown', e => {
+  const typing = /^(INPUT|TEXTAREA)$/.test(document.activeElement.tagName);
+  if(mode === 'cards'){
+    if(e.code === 'Space'){ e.preventDefault(); $('card').classList.toggle('flipped'); }
+    else if(e.key === 'ArrowRight') cMark(true);
+    else if(e.key === 'ArrowLeft') cMark(false);
+  } else if(mode === 'learn'){
+    if(!lLocked && !typing && /^[1-4]$/.test(e.key)){
+      const b = $('lOpts').children[+e.key - 1]; if(b) b.click();
+    } else if(e.key === 'Enter' && !$('lNext').hidden){ e.preventDefault(); $('lNext').click(); }
+  }
+});
+
+/* ---------- boot ---------- */
+$('mSize').textContent = S.pairs + ' pairs';
+renderChips(); renderMastery(); tRenderSetup(); renderGrid(); setMode('cards');
+</script>

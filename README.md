@@ -1,7 +1,21 @@
 # AEZ Faces
 
-Flashcard drill for learning the AEZ roster — tap a photo, guess the name, mark got / missed.
+A Quizlet-style study app for learning the AEZ roster — 45 brothers across six pledge classes.
 
-Live: https://hellomate2.github.io/aez-faces-6pjxf/
+**Live:** https://hellomate2.github.io/aez-faces-6pjxf/
 
-Not indexed by search engines (robots.txt + noindex).
+## Modes
+- **Flashcards** — photo → name, flip either direction, got/missed, arrow keys
+- **Learn** — adaptive rounds that pull your weakest names first; multiple choice → find-the-photo → type it out as each face levels up
+- **Match** — timed pair-up board (6/8/12 pairs), best time saved per pledge class
+- **Test** — graded, configurable length and question types, review at the end
+- **Roster** — searchable grid with mastery flags
+
+Progress is stored per browser in `localStorage`. Not indexed by search engines.
+
+## Build
+Page is generated from `template.html` + `roster.json`:
+
+```bash
+python3 build.py   # -> index.html
+```
