@@ -80,6 +80,9 @@ h1 span{color:var(--ink-3);font-weight:500;font-size:13px;margin-left:8px;letter
 .dot{width:8px;height:8px;border-radius:50%;flex:none}
 .dot.k{background:var(--good)} .dot.l{background:var(--warn)}
 .dot.s{background:var(--bad)} .dot.n{background:var(--surface-3)}
+.factline{font-size:12.5px;color:var(--ink-3);border-top:1px dashed var(--line);padding-top:8px}
+.factline b{color:var(--ink-2);font-weight:600}
+.factline span{margin-left:6px}
 
 /* ---- chips ---- */
 .chips{display:flex;gap:6px;flex-wrap:wrap}
@@ -130,6 +133,12 @@ h1 span{color:var(--ink-3);font-weight:500;font-size:13px;margin-left:8px;letter
 .role{margin-top:3px;color:var(--accent);font-weight:600;font-size:14.5px}
 .sub{color:var(--ink-3);font-size:13.5px;max-width:34ch;text-wrap:balance}
 .back .thumb{width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--line-soft);margin-bottom:6px}
+.facts{margin:10px 0 0;padding:11px 0 0;border-top:1px solid var(--line-soft);width:100%;max-width:330px;
+  display:grid;grid-template-columns:auto 1fr;gap:5px 12px;text-align:left;font-size:13.5px}
+.facts dt{color:var(--ink-3);font-size:11px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;
+  padding-top:2px;white-space:nowrap}
+.facts dd{margin:0;font-weight:600;overflow-wrap:anywhere}
+.facts:empty{display:none}
 
 /* ---- question views ---- */
 .qcard{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;
@@ -152,6 +161,7 @@ h1 span{color:var(--ink-3);font-weight:500;font-size:13px;margin-left:8px;letter
 .opt.right i{background:var(--good);color:var(--surface)}
 .opt.wrong{border-color:var(--bad);background:var(--bad-soft);color:var(--bad)}
 .opt.wrong i{background:var(--bad);color:var(--surface)}
+.opts.one{grid-template-columns:1fr}
 .opts.photos{grid-template-columns:repeat(2,1fr)}
 .opts.photos .opt{padding:0;display:block;position:relative;overflow:hidden;min-height:0}
 .opts.photos .opt img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
@@ -215,6 +225,7 @@ h1 span{color:var(--ink-3);font-weight:500;font-size:13px;margin-left:8px;letter
 .tile .t{padding:8px 10px 10px}
 .tile .t b{display:block;font-size:13.5px;line-height:1.2;font-weight:600}
 .tile .t span{display:block;font-size:11.5px;color:var(--ink-3);margin-top:2px;line-height:1.25}
+.tile .t span em{font-style:normal;color:var(--ink-3);opacity:.7;text-transform:uppercase;font-size:9.5px;letter-spacing:.05em;font-weight:700;margin-right:3px}
 .tile .flag{position:absolute;top:7px;right:7px;width:9px;height:9px;border-radius:50%;
   box-shadow:0 0 0 2px var(--surface)}
 .tile .flag.k{background:var(--good)} .tile .flag.l{background:var(--warn)} .tile .flag.s{background:var(--bad)}
@@ -273,6 +284,8 @@ h1 span{color:var(--ink-3);font-weight:500;font-size:13px;margin-left:8px;letter
       <span><i class="dot s"></i>Shaky <b class="num" id="nS">0</b></span>
       <span><i class="dot n"></i>Untouched <b class="num" id="nN">0</b></span>
     </div>
+    <div class="factline">Details <b class="num" id="nF">0</b> of <b class="num" id="nFT">0</b>
+      <span id="factNote"></span></div>
   </div>
 
   <div class="chips" id="chips"></div>
@@ -290,6 +303,7 @@ h1 span{color:var(--ink-3);font-weight:500;font-size:13px;margin-left:8px;letter
           <div class="name" id="cName"></div>
           <div class="role" id="cRole"></div>
           <div class="sub" id="cSub"></div>
+          <dl class="facts" id="cFacts"></dl>
         </div>
       </div>
     </div>
@@ -317,6 +331,7 @@ h1 span{color:var(--ink-3);font-weight:500;font-size:13px;margin-left:8px;letter
 
   <!-- ============ LEARN ============ -->
   <section id="v-learn" hidden>
+    <div class="row" id="lModes" style="margin-bottom:10px"></div>
     <div class="bar-thin"><i id="lProg"></i></div>
     <div class="meta"><span>Round <b class="num" id="lRound">1</b> · <b class="num" id="lPos">0</b> of <b class="num" id="lTotal">0</b></span>
       <span id="lStreakWrap">streak <b class="num" id="lStreak">0</b></span></div>
@@ -415,12 +430,13 @@ const $ = id => document.getElementById(id);
 const KEY = 'aez-faces-v2';
 
 /* AEZ pledge classes run in Greek order, not alphabetical */
-const GREEK = ['Alpha Beta','Alpha Gamma','Alpha Delta','Alpha Epsilon','Alpha Zeta','Alpha Eta'];
+const GREEK = ['Alpha Beta','Alpha Gamma','Alpha Delta','Alpha Epsilon','Alpha Zeta','Alpha Eta','Alpha Theta'];
 const byGreek = (a,b) => (GREEK.indexOf(a)+1||99) - (GREEK.indexOf(b)+1||99);
 
 /* ---------- state ---------- */
 /* m[name]: -1 shaky, 0 untouched, 1-2 learning, 3 mastered */
-let S = {m:{}, cls:'All', best:{}, pairs:6, tTypes:{mc:1, photo:1, tf:1, write:0}, tLen:10};
+let S = {m:{}, fm:{}, cls:'All', best:{}, pairs:6, lMode:'mixed',
+         tTypes:{mc:1, photo:1, tf:1, write:0, fact:1, whose:1}, tLen:10};
 try{ const raw = localStorage.getItem(KEY); if(raw) S = Object.assign(S, JSON.parse(raw)); }catch(e){}
 const save = () => { try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} };
 const lvl = p => S.m[p.n] || 0;
@@ -430,7 +446,41 @@ const setLvl = (p,v) => { S.m[p.n] = Math.max(-1, Math.min(3, v)); save(); };
 const shuffle = a => { for(let k=a.length-1;k>0;k--){const j=Math.floor(Math.random()*(k+1));[a[k],a[j]]=[a[j],a[k]];} return a; };
 const sample = (arr,n) => shuffle(arr.slice()).slice(0,n);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const desc = p => [p.r, p.c, p.m].filter(Boolean).join(' · ');
+const desc = p => [p.r, p.c, p.m, p.ht, p.hs, p.f, p.b, p.ig].filter(Boolean).join(' · ');
+
+/* ---------- the facts each brother can be drilled on ---------- */
+const FACTS = [
+  {k:'r',  label:'position',    ask:p=>'What position does ' + p.n + ' hold?',        who:'Who holds this position?'},
+  {k:'m',  label:'major',       ask:p=>'What does ' + p.n + ' study?',                who:'Who studies this?'},
+  {k:'ht', label:'hometown',    ask:p=>'Where is ' + p.n + ' from?',                  who:'Who is from here?'},
+  {k:'hs', label:'high school', ask:p=>'Where did ' + p.n + ' go to high school?',    who:'Who went here?'},
+  {k:'f',  label:'fun fact',    ask:p=>"What is " + p.n + "'s fun fact?",             who:'Whose fun fact is this?'},
+  {k:'b',  label:'birthday',    ask:p=>'When is ' + p.n + "'s birthday?",             who:'Whose birthday is this?'},
+  {k:'ig', label:'Instagram',   ask:p=>'What is ' + p.n + "'s Instagram?",            who:'Whose Instagram is this?'}
+];
+const FACT_BY_KEY = Object.fromEntries(FACTS.map(f => [f.k, f]));
+const factsOf = p => FACTS.filter(f => p[f.k]);
+const factId = (p, f) => p.n + '|' + f.k;
+
+/* A value shared by two brothers (two guys from Los Angeles) can't be asked in
+   reverse — "who is from here?" would have more than one right answer. */
+const valueCount = {};
+FACTS.forEach(f => { valueCount[f.k] = {}; });
+ALL.forEach(p => FACTS.forEach(f => {
+  if(p[f.k]) valueCount[f.k][norm0(p[f.k])] = (valueCount[f.k][norm0(p[f.k])] || 0) + 1;
+}));
+function norm0(s){ return String(s).toLowerCase().replace(/\s+/g,' ').trim(); }
+const isUnique = (p, f) => valueCount[f.k][norm0(p[f.k])] === 1;
+
+/* 3 wrong options with distinct values, drawn from whoever else has that field */
+function factDistractors(p, f, n){
+  const seen = new Set([norm0(p[f.k])]), out = [];
+  shuffle(ALL.filter(x => x[f.k] && x.n !== p.n)).forEach(x => {
+    if(out.length >= n || seen.has(norm0(x[f.k]))) return;
+    seen.add(norm0(x[f.k])); out.push(x[f.k]);
+  });
+  return out;
+}
 let toastT;
 function toast(t){ const e=$('toast'); e.textContent=t; e.classList.add('show');
   clearTimeout(toastT); toastT=setTimeout(()=>e.classList.remove('show'),1600); }
@@ -488,7 +538,14 @@ function renderMastery(){
   $('nK').textContent=k; $('nL').textContent=l; $('nS').textContent=sh; $('nN').textContent=n;
   $('mTitle').textContent = S.cls==='All' ? 'Whole chapter' : S.cls==='Exec' ? 'Exec board' : S.cls;
   $('mSub').textContent = k===ps.length ? 'All mastered' : k + ' of ' + ps.length + ' mastered';
-  $('count').textContent = ALL.length + ' brothers · 6 classes';
+  const classCount = new Set(ALL.map(p => p.c).filter(Boolean)).size;
+  $('count').textContent = ALL.length + ' brothers · ' + classCount + ' classes';
+  /* facts (hometown, fun fact, birthday …) are tracked separately from faces */
+  let fTot = 0, fGot = 0;
+  ps.forEach(p => factsOf(p).forEach(f => { fTot++; if(S.fm[factId(p,f)]) fGot++; }));
+  $('nF').textContent = fGot; $('nFT').textContent = fTot;
+  $('factNote').textContent = fTot === 0 ? '— no details on file for this group'
+    : fGot === fTot ? '— all learned' : '';
 }
 
 /* ================= FLASHCARDS ================= */
@@ -511,6 +568,9 @@ function cShow(){
   $('cName').textContent = p.n;
   $('cRole').textContent = p.r || ''; $('cRole').hidden = !p.r;
   $('cSub').textContent = [p.c, p.m].filter(Boolean).join(' · ');
+  /* every remaining field from his slide, so the card back is the whole record */
+  $('cFacts').innerHTML = factsOf(p).filter(f => f.k !== 'r' && f.k !== 'm')
+    .map(f => '<dt>' + esc(f.label) + '</dt><dd>' + esc(p[f.k]) + '</dd>').join('');
   $('cPos').textContent = cI+1; $('cTotal').textContent = cDeck.length;
   $('cGot').textContent = cGot; $('cMiss').textContent = cMiss;
   $('cProg').style.width = (cI/cDeck.length*100)+'%';
@@ -546,33 +606,88 @@ $('cAgainMiss').onclick = () => { cOnlyMissed=true; cStart(); };
 /* ================= LEARN ================= */
 let lQueue=[], lI=0, lRight=0, lWrongNames=[], lRound=1, lStreak=0, lLocked=false, lCur=null;
 const ROUND = 7;
-function lPick(){
-  /* weakest first: shaky, then untouched, then partially learned; mastered only if nothing else */
-  const ps = pool().slice();
+
+const L_MODES = [{k:'mixed', label:'Mixed'}, {k:'names', label:'Faces'}, {k:'facts', label:'Details'}];
+function lRenderModes(){
+  const box = $('lModes'); box.innerHTML = '';
+  L_MODES.forEach(m => {
+    const b = document.createElement('button');
+    b.className = 'ghost'; b.textContent = m.label;
+    b.setAttribute('aria-pressed', String(S.lMode === m.k));
+    b.onclick = () => { S.lMode = m.k; save(); lRenderModes(); lStart(); };
+    box.appendChild(b);
+  });
+}
+/* name items, weakest first: shaky, then untouched, then partly learned, mastered last */
+function lNameItems(){
   const rank = p => { const v = lvl(p); return v < 0 ? 0 : v === 0 ? 1 : v >= 3 ? 3 : 2; };
-  ps.sort((a,b) => rank(a)-rank(b) || Math.random()-0.5);
-  return ps.slice(0, Math.min(ROUND, ps.length));
+  return pool().slice().sort((a,b) => rank(a)-rank(b) || Math.random()-0.5)
+    .map(p => ({type:'name', p}));
+}
+/* fact items: anything not yet answered right, unlearned first */
+function lFactItems(){
+  const items = [];
+  pool().forEach(p => factsOf(p).forEach(f => items.push({type:'fact', p, f})));
+  return shuffle(items).sort((a,b) => (S.fm[factId(a.p,a.f)]?1:0) - (S.fm[factId(b.p,b.f)]?1:0));
+}
+function lPick(){
+  const names = lNameItems(), facts = lFactItems();
+  if(S.lMode === 'names') return names.slice(0, ROUND);
+  if(S.lMode === 'facts') return facts.slice(0, ROUND);
+  if(!facts.length) return names.slice(0, ROUND);
+  if(!names.length) return facts.slice(0, ROUND);
+  const half = Math.ceil(ROUND/2);
+  return shuffle(names.slice(0, half).concat(facts.slice(0, ROUND - half)));
 }
 function lStart(){
   lQueue = shuffle(lPick()); lI=0; lRight=0; lWrongNames=[];
   $('lDone').hidden = true; $('lCard').hidden = false;
+  if(!lQueue.length){
+    $('lCard').hidden = true; $('lDone').hidden = false;
+    $('lScore').textContent = '—';
+    $('lScoreSub').textContent = 'Nothing to drill in this group yet. Pick another class or switch drill type.';
+    $('lMissList').innerHTML = '';
+    return;
+  }
   lAsk();
 }
 function lAsk(){
   if(lI >= lQueue.length){ lFinish(); return; }
   lLocked = false; lCur = lQueue[lI];
-  const p = lCur, v = lvl(p);
-  const kind = v < 1 ? 'name' : v < 2 ? 'photo' : 'write';
-  lCur._kind = kind;
+  const it = lCur, p = it.p;
   $('lRound').textContent = lRound;
   $('lPos').textContent = lI+1; $('lTotal').textContent = lQueue.length;
   $('lStreak').textContent = lStreak;
   $('lProg').style.width = (lI/lQueue.length*100)+'%';
-  $('lLevel').textContent = v>=3 ? 'Mastered' : v<0 ? 'Shaky' : 'Level ' + Math.max(0,v) + ' of 3';
   $('lVerdict').hidden = true; $('lNext').hidden = true;
   $('lOpts').innerHTML = ''; $('lOpts').hidden = true;
   $('lAnswer').hidden = true; $('lInput').value = '';
   $('lPhoto').hidden = true; $('lPrompt').hidden = true;
+
+  if(it.type === 'fact'){
+    const f = it.f;
+    $('lLevel').textContent = S.fm[factId(p,f)] ? 'Learned' : 'New detail';
+    /* ask it in reverse only when the answer is unambiguous */
+    if(isUnique(p, f) && Math.random() < 0.4){
+      it.dir = 'who';
+      $('lKind').textContent = f.who;
+      $('lPrompt').textContent = p[f.k]; $('lPrompt').hidden = false;
+      lOptions(p, ALL.filter(x => x.n !== p.n), x => esc(x.n), false);
+    } else {
+      it.dir = 'fwd';
+      $('lKind').textContent = 'His ' + f.label;
+      $('lPhoto').src = p.i; $('lPhoto').hidden = false;
+      $('lPrompt').textContent = f.ask(p); $('lPrompt').hidden = false;
+      const opts = shuffle([p[f.k]].concat(factDistractors(p, f, 3)));
+      lValueOptions(opts, p[f.k]);
+    }
+    return;
+  }
+
+  const v = lvl(p);
+  const kind = v < 1 ? 'name' : v < 2 ? 'photo' : 'write';
+  it.kind = kind;
+  $('lLevel').textContent = v>=3 ? 'Mastered' : v<0 ? 'Shaky' : 'Level ' + Math.max(0,v) + ' of 3';
 
   if(kind === 'name'){
     $('lKind').textContent = 'Who is this?';
@@ -588,6 +703,27 @@ function lAsk(){
     $('lAnswer').hidden = false;
     setTimeout(() => $('lInput').focus(), 30);
   }
+}
+/* options that are plain values (a hometown, a fun fact) rather than people */
+function lValueOptions(values, correct){
+  const box = $('lOpts');
+  box.className = 'opts one'; box.hidden = false; box.innerHTML = '';
+  values.forEach((val, idx) => {
+    const b = document.createElement('button');
+    b.className = 'opt'; b.type = 'button';
+    b.innerHTML = '<i>' + (idx+1) + '</i>' + esc(val);
+    b.onclick = () => {
+      if(lLocked) return; lLocked = true;
+      const ok = norm0(val) === norm0(correct);
+      [...box.children].forEach(el => el.disabled = true);
+      b.classList.add(ok ? 'right' : 'wrong');
+      if(!ok) [...box.children].forEach(el => {
+        if(norm0(el.textContent.replace(/^\d/,'')) === norm0(correct)) el.classList.add('right');
+      });
+      lGrade(ok ? 'right' : 'wrong', lCur.p);
+    };
+    box.appendChild(b);
+  });
 }
 function lOptions(p, others, render, photos){
   const opts = shuffle([p, ...sample(others, 3)]);
@@ -617,21 +753,40 @@ function lChoose(btn, chosen, p, box){
 }
 function lGrade(res, p){
   const v = $('lVerdict');
+  const isFact = lCur && lCur.type === 'fact';
+  const f = isFact ? lCur.f : null;
   v.className = 'verdict ' + res; v.hidden = false;
+
+  const credit = () => {
+    lRight++; lStreak++;
+    if(isFact){ S.fm[factId(p,f)] = 1; save(); }
+    else setLvl(p, Math.max(1, lvl(p)+1));
+  };
+  const penalise = () => {
+    lStreak = 0;
+    if(isFact){ delete S.fm[factId(p,f)]; save(); lWrongNames.push(p.n + ' — ' + f.label); }
+    else { setLvl(p, -1); lWrongNames.push(p.n); }
+  };
+  const answer = isFact ? (lCur.dir === 'who' ? p.n : p[f.k]) : p.n;
+  const tail = isFact ? ' (' + p.n + ' — ' + f.label + ')' : (p.r ? ' — ' + p.r : '');
+
   if(res === 'right'){
-    lRight++; lStreak++; setLvl(p, Math.max(1, lvl(p)+1));
-    v.innerHTML = '<span>Correct — ' + esc(p.n) + (p.r ? ', ' + esc(p.r) : '') + '</span>';
+    credit();
+    v.innerHTML = '<span>Correct — ' + esc(answer) + esc(tail) + '</span>';
   } else if(res === 'close'){
-    lRight++; lStreak++; setLvl(p, Math.max(1, lvl(p)+1));
-    v.innerHTML = '<span>Close enough — it’s <span class="fix">' + esc(p.n) + '</span></span>';
+    credit();
+    v.innerHTML = '<span>Close enough — it’s <span class="fix">' + esc(answer) + '</span></span>';
   } else {
-    lStreak = 0; lWrongNames.push(p.n); setLvl(p, -1);
-    v.innerHTML = '<span>It’s <span class="fix">' + esc(p.n) + '</span>' + (p.r ? ' — ' + esc(p.r) : '') + '</span>' +
+    penalise();
+    v.innerHTML = '<span>It’s <span class="fix">' + esc(answer) + '</span>' + esc(tail) + '</span>' +
       '<button type="button" id="lOverride">I had it right</button>';
     const ov = $('lOverride');
     if(ov) ov.onclick = () => {
-      lWrongNames.pop(); lRight++; setLvl(p, Math.max(1, (S.m[p.n]||0)+2));
-      v.className = 'verdict right'; v.innerHTML = '<span>Counted as correct — ' + esc(p.n) + '</span>';
+      lWrongNames.pop(); lRight++;
+      if(isFact){ S.fm[factId(p,f)] = 1; save(); }
+      else setLvl(p, Math.max(1, (S.m[p.n]||0)+2));
+      v.className = 'verdict right';
+      v.innerHTML = '<span>Counted as correct — ' + esc(answer) + '</span>';
       renderMastery();
     };
   }
@@ -644,14 +799,18 @@ function lSubmitWrite(){
   const val = $('lInput').value;
   if(!norm(val)){ toast('Type a name first'); return; }
   lLocked = true;
-  lGrade(judge(val, lCur), lCur);
+  lGrade(judge(val, lCur.p), lCur.p);
 }
 function lFinish(){
   $('lProg').style.width = '100%';
   $('lCard').hidden = true; $('lDone').hidden = false;
   $('lScore').textContent = lRight + ' / ' + lQueue.length;
-  const mastered = pool().filter(p => lvl(p) >= 3).length;
-  $('lScoreSub').textContent = mastered + ' of ' + pool().length + ' mastered in this set. Rounds keep pulling the names you are weakest on.';
+  const ps = pool(), mastered = ps.filter(p => lvl(p) >= 3).length;
+  let fTot = 0, fGot = 0;
+  ps.forEach(p => factsOf(p).forEach(f => { fTot++; if(S.fm[factId(p,f)]) fGot++; }));
+  $('lScoreSub').textContent = mastered + ' of ' + ps.length + ' faces mastered'
+    + (fTot ? ', ' + fGot + ' of ' + fTot + ' details learned' : '')
+    + '. Rounds keep pulling whatever you are weakest on.';
   $('lMissList').innerHTML = lWrongNames.map(n => '<span>'+esc(n)+'</span>').join('');
 }
 $('lSubmit').onclick = lSubmitWrite;
@@ -732,7 +891,9 @@ const T_TYPES = [
   {k:'mc',    label:'Name the face'},
   {k:'photo', label:'Find the photo'},
   {k:'tf',    label:'Yes or no'},
-  {k:'write', label:'Write it out'}
+  {k:'write', label:'Write it out'},
+  {k:'fact',  label:'His details'},
+  {k:'whose', label:'Whose detail?'}
 ];
 let tQs = [], tGraded = false;
 function tRenderSetup(){
@@ -763,8 +924,22 @@ function tBuild(){
   const kinds = T_TYPES.map(t => t.k).filter(k => S.tTypes[k]);
   const picked = sample(ps, want);
   tQs = picked.map((p, idx) => {
-    const kind = kinds[idx % kinds.length];
+    let kind = kinds[idx % kinds.length];
     const others = ALL.filter(x => x.n !== p.n);
+    /* a fact question needs a fact; fall back to naming the face if he has none */
+    if(kind === 'fact' || kind === 'whose'){
+      const avail = kind === 'whose' ? factsOf(p).filter(f => isUnique(p, f)) : factsOf(p);
+      if(!avail.length) kind = 'mc';
+      else {
+        const f = sample(avail, 1)[0];
+        const q = {p, kind, f, answer:null};
+        q.opts = kind === 'whose'
+          ? shuffle([p.n, ...sample(others, 3).map(x => x.n)])
+          : shuffle([p[f.k], ...factDistractors(p, f, 3)]);
+        q.correct = kind === 'whose' ? p.n : p[f.k];
+        return q;
+      }
+    }
     const q = {p, kind, answer:null};
     if(kind === 'mc' || kind === 'photo') q.opts = shuffle([p, ...sample(others, 3)]);
     if(kind === 'tf'){ q.claim = Math.random() < 0.5 ? p : sample(others,1)[0]; q.yes = q.claim.n === p.n; }
@@ -784,6 +959,10 @@ function tRender(){
       inner += '<div class="ask">Which one is ' + esc(q.p.n) + '?</div><div class="opts photos"></div>';
     } else if(q.kind === 'tf'){
       inner += '<img class="q" src="'+q.p.i+'" alt="Headshot"><div class="ask">Is this ' + esc(q.claim.n) + '?</div><div class="opts"></div>';
+    } else if(q.kind === 'fact'){
+      inner += '<img class="q" src="'+q.p.i+'" alt="Headshot"><div class="ask">' + esc(q.f.ask(q.p)) + '</div><div class="opts one"></div>';
+    } else if(q.kind === 'whose'){
+      inner += '<div class="ask">' + esc(q.f.who) + ' <b>' + esc(q.p[q.f.k]) + '</b></div><div class="opts"></div>';
     } else {
       inner += '<img class="q" src="'+q.p.i+'" alt="Headshot"><div class="ask">Write his full name.</div>' +
         '<div class="answer"><input type="text" autocomplete="off" autocapitalize="words" spellcheck="false" placeholder="Full name"></div>';
@@ -796,6 +975,8 @@ function tRender(){
       q.opts.forEach((o,k) => box.appendChild(tOpt('<img src="'+o.i+'" alt="Option '+(k+1)+'">', k, () => { q.answer = o.n; tMark(d, box, k); }, true)));
     } else if(q.kind === 'tf'){
       ['Yes','No'].forEach((lab,k) => box.appendChild(tOpt(lab, k, () => { q.answer = lab; tMark(d, box, k); })));
+    } else if(q.kind === 'fact' || q.kind === 'whose'){
+      q.opts.forEach((val,k) => box.appendChild(tOpt(val, k, () => { q.answer = val; tMark(d, box, k); })));
     } else {
       const inp = d.querySelector('input');
       inp.oninput = () => { q.answer = inp.value; tCount(); };
@@ -833,17 +1014,24 @@ function tSubmit(){
   tQs.forEach((q,i) => {
     const d = $('q'+i);
     let ok = false, shown;
+    const isFact = q.kind === 'fact' || q.kind === 'whose';
     if(q.kind === 'tf'){ ok = (q.answer === 'Yes') === q.yes; shown = q.yes ? 'Yes' : 'No'; }
     else if(q.kind === 'write'){ const v = judge(q.answer || '', q.p); ok = v !== 'wrong'; shown = q.p.n; }
+    else if(isFact){ ok = norm0(q.answer || '') === norm0(q.correct); shown = q.correct; }
     else { ok = q.answer === q.p.n; shown = q.p.n; }
-    if(ok){ right++; setLvl(q.p, Math.max(1, lvl(q.p)+1)); } else setLvl(q.p, -1);
+    if(isFact){
+      if(ok){ right++; S.fm[factId(q.p, q.f)] = 1; } else delete S.fm[factId(q.p, q.f)];
+      save();
+    } else if(ok){ right++; setLvl(q.p, Math.max(1, lvl(q.p)+1)); } else setLvl(q.p, -1);
     d.classList.add('graded', ok ? 'ok' : 'no');
     d.querySelectorAll('.opt').forEach(el => el.disabled = true);
     const inp = d.querySelector('input'); if(inp) inp.disabled = true;
     const line = document.createElement('div');
     line.className = 'corr' + (ok ? '' : ' no');
-    line.innerHTML = ok ? 'Correct — <b>' + esc(shown) + '</b>'
-      : 'Answer: <b>' + esc(shown) + '</b>' + (q.p.r ? ' · ' + esc(q.p.r) : '') + ' · ' + esc(q.p.c);
+    const ctx = isFact ? ' · ' + esc(q.p.n) + '’s ' + esc(q.f.label)
+                       : (q.p.r ? ' · ' + esc(q.p.r) : '') + ' · ' + esc(q.p.c);
+    line.innerHTML = (ok ? 'Correct — <b>' + esc(shown) + '</b>'
+                         : 'Answer: <b>' + esc(shown) + '</b>') + ctx;
     d.appendChild(line);
   });
   const pct = Math.round(right / tQs.length * 100);
@@ -871,10 +1059,12 @@ function renderGrid(){
     const flag = v >= 3 ? 'k' : v < 0 ? 's' : v > 0 ? 'l' : '';
     const t = document.createElement('div');
     t.className = 'tile';
+    const extra = factsOf(p).filter(f => f.k !== 'r')
+      .map(f => '<span><em>' + esc(f.label) + '</em> ' + esc(p[f.k]) + '</span>').join('');
     t.innerHTML = '<img src="'+p.i+'" alt="'+esc(p.n)+'">' +
       (flag ? '<span class="flag '+flag+'" title="'+(flag==='k'?'Mastered':flag==='s'?'Shaky':'Learning')+'"></span>' : '') +
       '<div class="t"><b>'+esc(p.n)+'</b><span>'+esc([p.r, p.c].filter(Boolean).join(' · '))+'</span>' +
-      '<span>'+esc(p.m||'')+'</span></div>';
+      extra + '</div>';
     g.appendChild(t);
   });
 }
@@ -906,8 +1096,8 @@ function setMode(m){
 document.querySelectorAll('#modes button').forEach(b => b.onclick = () => setMode(b.dataset.mode));
 
 $('bReset').onclick = () => {
-  if(!confirm('Clear all mastery progress and best times?')) return;
-  S.m = {}; S.best = {}; save();
+  if(!confirm('Clear every face, detail and best time you have logged?')) return;
+  S.m = {}; S.fm = {}; S.best = {}; save();
   renderMastery(); restartMode(); toast('Progress cleared');
 };
 
@@ -927,5 +1117,5 @@ document.addEventListener('keydown', e => {
 
 /* ---------- boot ---------- */
 $('mSize').textContent = S.pairs + ' pairs';
-renderChips(); renderMastery(); tRenderSetup(); renderGrid(); setMode('cards');
+renderChips(); renderMastery(); lRenderModes(); tRenderSetup(); renderGrid(); setMode('cards');
 </script>
