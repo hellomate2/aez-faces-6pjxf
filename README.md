@@ -1,11 +1,11 @@
 # AEZ Faces
 
-A Quizlet-style study app for learning the AEZ roster — 58 brothers across seven pledge classes.
+A Quizlet-style study app for learning the AEZ roster — 56 brothers and pledges across seven pledge classes.
 
 **Live:** https://hellomate2.github.io/aez-faces-6pjxf/
 
 ## Modes
-- **Flashcards** — photo → name, flip either direction, got/missed, arrow keys
+- **Flashcards** — photo → name, in last-name order or shuffled, flip either direction, got/missed, arrow keys
 - **Learn** — adaptive rounds that pull your weakest names first; multiple choice → find-the-photo → type it out as each face levels up
 - **Match** — timed pair-up board (6/8/12 pairs), best time saved per pledge class
 - **Test** — graded, configurable length and question types, review at the end

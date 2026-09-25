@@ -313,7 +313,8 @@ h1 span{color:var(--ink-3);font-weight:500;font-size:13px;margin-left:8px;letter
         <button class="btn got" id="cOk">Got it <kbd>→</kbd></button>
       </div>
       <div class="row center" style="margin-top:10px">
-        <button class="ghost" id="cShuffle">Shuffle</button>
+        <button class="ghost" id="cInOrder" aria-pressed="true">In order (last name)</button>
+        <button class="ghost" id="cShuffle" aria-pressed="false">Shuffle</button>
         <button class="ghost" id="cMissed">Review misses only</button>
         <button class="ghost" id="cFlipDir" aria-pressed="false">Start with name</button>
       </div>
@@ -519,7 +520,7 @@ function renderChips(){
   chipDefs().forEach(c => {
     const b = document.createElement('button');
     b.className = 'chip' + (c==='Exec' ? ' exec' : '');
-    b.textContent = c==='All' ? 'All 45' : c==='Exec' ? 'Exec board' : c;
+    b.textContent = c==='All' ? 'All ' + ALL.length : c==='Exec' ? 'Exec board' : c;
     b.setAttribute('aria-pressed', String(c === S.cls));
     b.onclick = () => { S.cls = c; save(); renderChips(); renderMastery(); restartMode(); };
     box.appendChild(b);
@@ -549,14 +550,16 @@ function renderMastery(){
 }
 
 /* ================= FLASHCARDS ================= */
-let cDeck=[], cI=0, cGot=0, cMiss=0, cOnlyMissed=false, cMissed=[], cNameFirst=false;
+let cDeck=[], cI=0, cGot=0, cMiss=0, cOnlyMissed=false, cMissed=[], cNameFirst=false, cInOrder=true;
+const lastFirst = p => { const w = p.n.trim().split(/\s+/); return (w[w.length-1] + ' ' + w[0]).toLowerCase(); };
+const byClassLast = (a,b) => byGreek(a.c,b.c) || lastFirst(a).localeCompare(lastFirst(b));
 function cStart(){
   let src = pool();
   if(cOnlyMissed){
     const m = src.filter(p => lvl(p) < 0);
     if(!m.length){ toast('Nothing missed here yet'); cOnlyMissed=false; } else src = m;
   }
-  cDeck = shuffle(src.slice()); cI=0; cGot=0; cMiss=0; cMissed=[];
+  cDeck = cInOrder ? src.slice().sort(byClassLast) : shuffle(src.slice()); cI=0; cGot=0; cMiss=0; cMissed=[];
   $('cDone').hidden = true; $('cStage').hidden = false; $('cControls').hidden = false;
   cShow();
 }
@@ -594,7 +597,11 @@ $('card').onclick = () => $('card').classList.toggle('flipped');
 $('card').onkeydown = e => { if(e.key==='Enter'){ $('card').classList.toggle('flipped'); } };
 $('cOk').onclick = () => cMark(true);
 $('cBad').onclick = () => cMark(false);
-$('cShuffle').onclick = () => { cOnlyMissed=false; cStart(); };
+function cSetOrder(inOrder){ cInOrder = inOrder;
+  $('cInOrder').setAttribute('aria-pressed', String(inOrder));
+  $('cShuffle').setAttribute('aria-pressed', String(!inOrder)); }
+$('cInOrder').onclick = () => { cSetOrder(true); cOnlyMissed=false; cStart(); };
+$('cShuffle').onclick = () => { cSetOrder(false); cOnlyMissed=false; cStart(); };
 $('cMissed').onclick = () => { cOnlyMissed=true; cStart(); };
 $('cFlipDir').onclick = () => { cNameFirst = !cNameFirst;
   $('cFlipDir').setAttribute('aria-pressed', String(cNameFirst));
